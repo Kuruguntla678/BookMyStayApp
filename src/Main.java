@@ -1,64 +1,87 @@
 import java.util.*;
 
-// Custom Exception
-class InvalidBookingException extends Exception {
-    public InvalidBookingException(String message) {
-        super(message);
+// Reservation class
+class Reservation {
+    String reservationId;
+    String guestName;
+    String roomType;
+    String roomId;
+
+    Reservation(String reservationId, String guestName, String roomType, String roomId) {
+        this.reservationId = reservationId;
+        this.guestName = guestName;
+        this.roomType = roomType;
+        this.roomId = roomId;
     }
 }
 
-// Booking Validator
-class InvalidBookingValidator {
+// Cancellation Service
+class CancellationService {
 
+    Map<String, Reservation> reservations = new HashMap<>();
     Map<String, Integer> inventory = new HashMap<>();
+    Stack<String> releasedRooms = new Stack<>();
 
-    public InvalidBookingValidator() {
-        inventory.put("Single", 2);
-        inventory.put("Double", 2);
+    public CancellationService() {
+        inventory.put("Single", 1);
+        inventory.put("Double", 1);
     }
 
-    // Validate booking
-    public void validateBooking(String guestName, String roomType) throws InvalidBookingException {
+    // Add confirmed reservation
+    public void addReservation(Reservation r) {
+        reservations.put(r.reservationId, r);
+    }
 
-        if (guestName == null || guestName.isEmpty()) {
-            throw new InvalidBookingException("Guest name cannot be empty.");
+    // Cancel reservation
+    public void cancelReservation(String reservationId) {
+
+        if (!reservations.containsKey(reservationId)) {
+            System.out.println("Cancellation Failed: Reservation not found.");
+            return;
         }
 
-        if (!inventory.containsKey(roomType)) {
-            throw new InvalidBookingException("Invalid room type: " + roomType);
+        Reservation r = reservations.get(reservationId);
+
+        // Push released room ID to stack (rollback)
+        releasedRooms.push(r.roomId);
+
+        // Restore inventory
+        inventory.put(r.roomType, inventory.get(r.roomType) + 1);
+
+        // Remove reservation
+        reservations.remove(reservationId);
+
+        System.out.println("Reservation " + reservationId + " cancelled successfully.");
+        System.out.println("Room released: " + r.roomId);
+    }
+
+    // Display inventory
+    public void displayInventory() {
+        System.out.println("\nCurrent Inventory:");
+        for (String type : inventory.keySet()) {
+            System.out.println(type + " Rooms Available: " + inventory.get(type));
         }
-
-        if (inventory.get(roomType) <= 0) {
-            throw new InvalidBookingException("No rooms available for type: " + roomType);
-        }
-
-        // If valid, update inventory
-        inventory.put(roomType, inventory.get(roomType) - 1);
-
-        System.out.println("Booking confirmed for " + guestName + " (" + roomType + ")");
     }
 }
 
-// Main Class
-public class UseCase9ErrorHandlingValidation {
+// Main class
+public class UseCase10BookingCancellation {
 
     public static void main(String[] args) {
 
-        InvalidBookingValidator validator = new InvalidBookingValidator();
+        CancellationService service = new CancellationService();
 
-        String[][] bookingRequests = {
-                {"Alice", "Single"},
-                {"Bob", "Suite"},     // invalid room type
-                {"", "Double"},       // invalid guest name
-                {"Charlie", "Double"}
-        };
+        // Add confirmed bookings
+        service.addReservation(new Reservation("RES101", "Alice", "Single", "S1"));
+        service.addReservation(new Reservation("RES102", "Bob", "Double", "D1"));
 
-        for (String[] request : bookingRequests) {
-            try {
-                validator.validateBooking(request[0], request[1]);
-            } catch (InvalidBookingException e) {
-                System.out.println("Booking Failed: " + e.getMessage());
-            }
-        }
+        // Cancel a reservation
+        service.cancelReservation("RES101");
+
+        // Try cancelling invalid reservation
+        service.cancelReservation("RES200");
+
+        // Show updated inventory
+        service.displayInventory();
     }
 }
