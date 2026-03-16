@@ -1,81 +1,70 @@
-abstract class Room {
+import java.util.HashMap;
+import java.util.Map;
 
-    protected String roomType;
-    protected int beds;
-    protected int size;
-    protected double price;
 
-    public Room(String roomType, int beds, int size, double price) {
-        this.roomType = roomType;
-        this.beds = beds;
-        this.size = size;
-        this.price = price;
+// Inventory management class
+class RoomInventory {
+
+    // HashMap to store room availability
+    private Map<String, Integer> inventory;
+
+    // Constructor initializes inventory
+    public RoomInventory() {
+        inventory = new HashMap<>();
+
+        // Register room types with availability
+        inventory.put("Single Room", 10);
+        inventory.put("Double Room", 5);
+        inventory.put("Suite Room", 2);
     }
 
-    // Method to display room details
-    public void displayRoomDetails() {
-        System.out.println("Room Type : " + roomType);
-        System.out.println("Beds      : " + beds);
-        System.out.println("Size (sqft): " + size);
-        System.out.println("Price     : $" + price);
+    // Retrieve availability for a room type
+    public int getAvailability(String roomType) {
+        return inventory.getOrDefault(roomType, 0);
     }
-}
 
-// Single Room class
-class SingleRoom extends Room {
-
-    public SingleRoom() {
-        super("Single Room", 1, 200, 100.0);
+    // Update availability
+    public void updateAvailability(String roomType, int newCount) {
+        if (inventory.containsKey(roomType)) {
+            inventory.put(roomType, newCount);
+        }
     }
-}
 
-// Double Room class
-class DoubleRoom extends Room {
+    // Display full inventory
+    public void displayInventory() {
+        System.out.println("------ Current Room Inventory ------");
 
-    public DoubleRoom() {
-        super("Double Room", 2, 350, 180.0);
-    }
-}
-
-// Suite Room class
-class SuiteRoom extends Room {
-
-    public SuiteRoom() {
-        super("Suite Room", 3, 600, 350.0);
+        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue() + " rooms available");
+        }
     }
 }
 
-// Application Entry Point
-public class UseCase2RoomInitialization {
+// Application entry point
+public class UseCase3InventorySetup {
 
     public static void main(String[] args) {
 
         System.out.println("=================================");
         System.out.println("Book My Stay - Hotel Booking App");
-        System.out.println("Version 2.1");
+        System.out.println("Version 3.1");
         System.out.println("=================================\n");
 
-        // Create room objects (Polymorphism)
-        Room single = new SingleRoom();
-        Room doubleRoom = new DoubleRoom();
-        Room suite = new SuiteRoom();
+        // Initialize centralized inventory
+        RoomInventory inventory = new RoomInventory();
 
-        // Static availability variables
-        int singleRoomAvailability = 10;
-        int doubleRoomAvailability = 5;
-        int suiteRoomAvailability = 2;
+        // Display current inventory
+        inventory.displayInventory();
 
-        System.out.println("---- Room Details & Availability ----\n");
+        System.out.println("\nChecking availability for Double Room...");
+        System.out.println("Available: " + inventory.getAvailability("Double Room"));
 
-        single.displayRoomDetails();
-        System.out.println("Available : " + singleRoomAvailability);
-        System.out.println();
+        // Update availability
+        System.out.println("\nUpdating Double Room availability...");
+        inventory.updateAvailability("Double Room", 4);
 
-        doubleRoom.displayRoomDetails();
-        System.out.println("Available : " + doubleRoomAvailability);
-        System.out.println();
-
-        suite.displayRoomDetails();
-        System.out.println("Available : " + suiteRoomAvailability);
+        // Display updated inventory
+        System.out.println("\nUpdated Inventory:");
+        inventory.displayInventory();
     }
 }
